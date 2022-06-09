@@ -16,6 +16,7 @@ body {
 
 .game-title {
     text-align: center;
+    font-size: 3rem;
 }
 
 .score {
@@ -23,23 +24,86 @@ body {
 }
 
 .score-value {
-    font-size: 3rem;
+    display: inline-block;
+    background-color: #ad9d8f;
+    color: #fff;
+    border-radius: 8px;
+    width: 8rem;
 }
 
-.game {
-    padding: 1rem;
+.score h3 {
+    font-size: 1.3rem;
+}
+
+.score-value span {
+    font-weight: bold;
+    font-size: 2.5rem;
 }
 
 .table {
     margin: 1rem auto;
+    display: flex;
+    flex-wrap: wrap;
+    width: 376px;
+    background-color: #ad9d8f;
+    border-radius: 6px;
+    padding: 0.5rem;
 }
-.table-col {
-    background-color: coral;
+
+.back-table {
+    border-collapse: collapse;
+
+    border-radius: 6px;
+}
+
+.table-cell {
+    background-color: #c1b3a4;
     color: #fff;
-    width: 100px;
-    height: 100px;
-    text-align: center;
-    border-radius: 12px;
+    width: 80px;
+    height: 80px;
     font-size: 2.5rem;
     font-weight: bold;
+    margin: 5px;
+    text-align: center;
+    border-radius: 8px;
+    line-height: 80px;
+}
+
+.table-cell[data-number="2"] {
+    background-color: #eee4da;
+    color: #776e65;
+}
+.table-cell[data-number="4"] {
+    background-color: #ede0c8;
+    color: #776e65;
+}
+.table-cell[data-number="8"] {
+    background-color: #f2b179;
+}
+.table-cell[data-number="16"] {
+    background-color: #f59563;
+}
+.table-cell[data-number="32"] {
+    background-color: #f67c60;
+}
+.table-cell[data-number="64"] {
+    background-color: #f65e3b;
+}
+.table-cell[data-number="128"] {
+    background-color: #edcf73;
+}
+.table-cell[data-number="256"] {
+    background-color: #edcc62;
+}
+.table-cell[data-number="512"] {
+    background-color: #edc850;
+}
+.table-cell[data-number="1024"] {
+    background-color: #edc53f;
+}
+.table-cell[data-number="2048"] {
+    background-color: #edc22d;
+}
+.table-cell[data-number="bigNum"] {
+    background-color: #3e3933;
 }
