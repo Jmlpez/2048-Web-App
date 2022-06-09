@@ -104,10 +104,8 @@ const moveTable = (dir) => {
                         table[r][cell] = 0;
                         table[r][cell + 1] *= 2;
                         updateScore(table[r][cell + 1]);
-                        move = true;
                     } else if (table[r][cell + 1] === 0) {
                         //swap...
-                        move = true;
                         [table[r][cell], table[r][cell + 1]] = [table[r][cell + 1], table[r][cell]];
                     } else {
                         break;
@@ -127,10 +125,8 @@ const moveTable = (dir) => {
                         table[cell][c] = 0;
                         table[cell + 1][c] *= 2;
                         updateScore(table[cell + 1][c]);
-                        move = true;
                     } else if (table[cell + 1][c] === 0) {
                         //swap...
-                        move = true;
                         [table[cell][c], table[cell + 1][c]] = [table[cell + 1][c], table[cell][c]];
                     } else {
                         break;
@@ -150,7 +146,6 @@ const moveTable = (dir) => {
                         table[r][cell] = 0;
                         table[r][cell - 1] *= 2;
                         updateScore(table[r][cell - 1]);
-                        move = true;
                     } else if (table[r][cell - 1] === 0) {
                         //swap...
                         [table[r][cell], table[r][cell - 1]] = [table[r][cell - 1], table[r][cell]];
@@ -171,7 +166,7 @@ const updateTable = () => {
     for (let r = 0; r < table.length; r++) {
         for (let c = 0; c < table.length; c++) {
             cellsDOM[idx].innerHTML = "";
-            cellsDOM[idx].dataset["number"] = table[r][c];
+            cellsDOM[idx].dataset["number"] = table[r][c] < 2048 ? table[r][c] : "bigNum";
             if (table[r][c] !== 0) {
                 cellsDOM[idx].innerHTML = table[r][c];
             } else {
@@ -189,11 +184,10 @@ const handleInput = (key) => {
         ArrowDown: 3,
         ArrowLeft: 4,
     };
+    //si no es un tecla de movimiento valida
     if (!movement[key]) return;
 
     let move = moveTable(movement[key]);
-
-    console.log(move);
 
     if (move === true) {
         updateTable();
@@ -209,7 +203,7 @@ const handleInput = (key) => {
             flag = keyPress.find((e) => e == i);
             if (!flag) break;
         }
-        console.log(flag, "EEE", keyPress);
+        // console.log(flag, "EEE", keyPress);
         if (flag) {
             alert("Perdiste");
         }
@@ -221,14 +215,3 @@ document.addEventListener("keydown", (event) => {
 });
 
 updateTable();
-
-let bta = [
-    [1, 2],
-    [3, 4],
-];
-let ata = [
-    [1, 2],
-    [3, 4],
-];
-
-console.log(equalTables(ata, bta));
