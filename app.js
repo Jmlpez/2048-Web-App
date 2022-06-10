@@ -1,21 +1,10 @@
-const cellsDOM = document.querySelectorAll(".table-cell"),
-    scoreDOM = document.querySelector(".score span");
+const cellsDOM = document.querySelectorAll(".table-cell div"),
+    scoreDOM = document.querySelector(".score span"),
+    modal = document.querySelector(".overlay"),
+    modalScore = modal.querySelector(".modal-score"),
+    restartBtn = modal.querySelector(".modal-btn");
 
-let table = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-];
-
-//list of key pressed, for gameOver state
-let keyPress = [];
-
-let score = 0,
-    gameOver = false;
-
-let freeCells = [];
-for (let i = 0; i < 16; i++) freeCells.push(i);
+let table, freeCells, score, gameOver;
 
 const getFreePos = () => {
     let rand = Math.floor(Math.random() * freeCells.length);
@@ -35,11 +24,29 @@ const setRandom = (pos = {}) => {
     if (pos !== NaN) table[pos.row][pos.col] = rand <= 0.75 ? 2 : 4;
 };
 
-for (let i = 0; i < 2; i++) {
-    let freePos = getFreePos();
-    setRandom(getPos(freePos));
-}
-//Initial numbers
+const initGame = () => {
+    table = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+    ];
+    score = 0;
+    gameOver = false;
+    freeCells = [];
+    for (let i = 0; i < 16; i++) freeCells.push(i);
+
+    //Initial numbers
+    for (let i = 0; i < 2; i++) {
+        let freePos = getFreePos();
+        setRandom(getPos(freePos));
+    }
+    scoreDOM.innerHTML = score;
+    modalScore.innerHTML = score;
+    modal.classList.remove("show-modal");
+    restartBtn.disabled = true;
+    updateTable();
+};
 
 /*
 dir: 1 up
@@ -166,7 +173,7 @@ const updateTable = () => {
     for (let r = 0; r < table.length; r++) {
         for (let c = 0; c < table.length; c++) {
             cellsDOM[idx].innerHTML = "";
-            cellsDOM[idx].dataset["number"] = table[r][c] < 2048 ? table[r][c] : "bigNum";
+            cellsDOM[idx].parentElement.dataset["number"] = table[r][c] < 2048 ? table[r][c] : "bigNum";
             if (table[r][c] !== 0) {
                 cellsDOM[idx].innerHTML = table[r][c];
             } else {
@@ -175,6 +182,33 @@ const updateTable = () => {
             idx++;
         }
     }
+};
+
+const checkGameOver = () => {
+    for (let r = 0; r < table.length; r++)
+        for (let c = 0; c < table.length; c++) {
+            if (table[r][c] == 0) return false;
+            if (
+                (c < table.length - 1 && table[r][c] === table[r][c + 1]) ||
+                (c > 0 && table[r][c] === table[r][c - 1]) ||
+                (r > 0 && table[r][c] === table[r - 1][c]) ||
+                (r < table.length - 1 && table[r][c] === table[r + 1][c])
+            ) {
+                return false;
+            }
+        }
+    return true;
+};
+
+const handleGameOver = () => {
+    setTimeout(() => {
+        modal.classList.add("show-modal");
+        modalScore.innerHTML = score;
+        restartBtn.disabled = false;
+    }, 500);
+    // setTimeout(() => {
+    //     alert("Perdiste");
+    // }, 1000);
 };
 
 const handleInput = (key) => {
@@ -195,8 +229,14 @@ const handleInput = (key) => {
         if (!freePos) return;
         setRandom(getPos(freePos));
         updateTable();
-        keyPress = [];
-    } else {
+        // keyPress = [];
+    }
+    gameOver = checkGameOver();
+    if (gameOver) {
+        handleGameOver();
+    }
+    /*
+    else {
         keyPress.push(movement[key]);
         let flag = undefined;
         for (let i = 1; i <= 4; i++) {
@@ -208,10 +248,15 @@ const handleInput = (key) => {
             alert("Perdiste");
         }
     }
+    */
 };
 
 document.addEventListener("keydown", (event) => {
-    handleInput(event.key);
+    if (!gameOver) handleInput(event.key);
 });
 
-updateTable();
+restartBtn.addEventListener("click", () => {
+    initGame();
+});
+
+initGame();
