@@ -5,10 +5,10 @@ const cellsDOM = document.querySelectorAll(".table-cell div"),
     restartBtn = modal.querySelector(".modal-btn");
 
 const boardSize = 4,
-    moveTimeout = 310,
+    moveTimeout = 300,
     modalTimeout = 500;
 
-let table, freeCells, score, gameOver, animating;
+let table, freeCells, animatedCells, score, gameOver, animating;
 
 const getFreePos = () => {
     let rand = Math.floor(Math.random() * freeCells.length);
@@ -35,16 +35,12 @@ const initGame = () => {
         [0, 0, 0, 0],
         [0, 0, 0, 0],
     ];
-    // table = new Array(4);
-    // for (let i = 0; i < 4; i++) {
-
-    //     for(let i = 0; i < 4; i++)
-    // }
 
     score = 0;
     animating = false;
     gameOver = false;
     freeCells = [];
+    animatedCells = [];
     for (let i = 0; i < 16; i++) freeCells.push(i);
 
     //Initial numbers
@@ -59,12 +55,29 @@ const initGame = () => {
     updateTable();
 };
 
-/*
-dir: 1 up
-dir: 2 right
-dir: 3 down
-dir: 4 left
-*/
+const checkGameOver = () => {
+    for (let r = 0; r < boardSize; r++)
+        for (let c = 0; c < boardSize; c++) {
+            if (table[r][c] == 0) return false;
+            if (
+                (c < boardSize - 1 && table[r][c] === table[r][c + 1]) ||
+                (c > 0 && table[r][c] === table[r][c - 1]) ||
+                (r > 0 && table[r][c] === table[r - 1][c]) ||
+                (r < boardSize - 1 && table[r][c] === table[r + 1][c])
+            ) {
+                return false;
+            }
+        }
+    return true;
+};
+
+const handleGameOver = () => {
+    setTimeout(() => {
+        modal.classList.add("show-modal");
+        modalScore.innerHTML = score;
+        restartBtn.disabled = false;
+    }, modalTimeout);
+};
 
 const updateScore = (val) => {
     score += val;
@@ -80,9 +93,11 @@ const equalTables = (table = [], copiaTable = []) => {
     return true;
 };
 
+//dir: 1 up dir: 2 right dir: 3 down dir: 4 left
 const moveTable = (dir) => {
     let finalPositions = [],
         mk = [];
+    animatedCells = [];
 
     const copiaTable = [];
     for (let i = 0; i < boardSize; i++) {
@@ -91,7 +106,7 @@ const moveTable = (dir) => {
     for (let i = 0; i < boardSize; i++) {
         finalPositions.push(new Array(boardSize));
         mk.push(new Array(boardSize));
-        finalPositions[i].fill(-1);
+        finalPositions[i].fill(undefined);
         mk[i].fill(0);
     }
 
@@ -111,6 +126,7 @@ const moveTable = (dir) => {
             let nCell = dir == 1 ? r - 1 : r + 1;
             table[r][c] = 0;
             table[nCell][c] *= 2;
+            animatedCells.push(nCell * boardSize + c);
             mk[nCell][c] = true;
             updateScore(table[nCell][c]);
         } else if (dir == 2 || dir == 4) {
@@ -118,6 +134,7 @@ const moveTable = (dir) => {
             let nCell = dir == 4 ? c - 1 : c + 1;
             table[r][c] = 0;
             table[r][nCell] *= 2;
+            animatedCells.push(r * boardSize + nCell);
             mk[r][nCell] = true;
             updateScore(table[r][nCell]);
         }
@@ -207,7 +224,7 @@ const moveTable = (dir) => {
     if (!equalTables(table, copiaTable)) {
         for (let r = 0, idx = 0; r < boardSize; r++)
             for (let c = 0; c < boardSize; c++) {
-                if (finalPositions[r][c] !== -1) {
+                if (finalPositions[r][c] !== undefined) {
                     const cellVal = finalPositions[r][c];
 
                     const cell = getComputedStyle(cellsDOM[idx].parentElement);
@@ -230,15 +247,21 @@ const moveTable = (dir) => {
     return false;
 };
 
-const updatePos = (idx, val) => {
+const updatePos = (idx, val, flag = 0) => {
     cellsDOM[idx].style.transform = "none";
     cellsDOM[idx].innerHTML = "";
-    cellsDOM[idx].parentElement.dataset["number"] = val < 2048 ? val : "bigNum";
-    if (val !== 0) {
-        cellsDOM[idx].innerHTML = val;
-    } else {
-        freeCells.push(idx);
+
+    cellsDOM[idx].parentElement.dataset["number"] = val <= 2048 ? val : "bigNum";
+
+    if (flag != 0) {
+        cellsDOM[idx].style.animation = `${flag === true ? "join" : "new"}-bounce 0.3s ease forwards`;
+        setTimeout(() => {
+            cellsDOM[idx].style.transition = "all 0.3s ease";
+            cellsDOM[idx].style.animation = "none";
+        }, moveTimeout);
     }
+
+    if (val != 0) cellsDOM[idx].innerHTML = val;
 };
 
 const updateTable = () => {
@@ -246,39 +269,21 @@ const updateTable = () => {
     let idx = 0;
     for (let r = 0; r < boardSize; r++) {
         for (let c = 0; c < boardSize; c++) {
-            updatePos(idx, table[r][c]);
+            updatePos(idx, table[r][c], animatedCells.includes(idx));
+            if (table[r][c] == 0) {
+                console.log("La pos: ", { r, c }, "esta libre");
+                freeCells.push(idx);
+            }
             idx++;
         }
     }
+    console.log("\n\n");
+
     setTimeout(() => {
         cellsDOM.forEach((cell) => {
             cell.style.transition = "all 0.3s ease";
         });
     }, 100);
-};
-
-const checkGameOver = () => {
-    for (let r = 0; r < boardSize; r++)
-        for (let c = 0; c < boardSize; c++) {
-            if (table[r][c] == 0) return false;
-            if (
-                (c < boardSize - 1 && table[r][c] === table[r][c + 1]) ||
-                (c > 0 && table[r][c] === table[r][c - 1]) ||
-                (r > 0 && table[r][c] === table[r - 1][c]) ||
-                (r < boardSize - 1 && table[r][c] === table[r + 1][c])
-            ) {
-                return false;
-            }
-        }
-    return true;
-};
-
-const handleGameOver = () => {
-    setTimeout(() => {
-        modal.classList.add("show-modal");
-        modalScore.innerHTML = score;
-        restartBtn.disabled = false;
-    }, modalTimeout);
 };
 
 const handleMovement = () => {
@@ -289,17 +294,9 @@ const handleMovement = () => {
     updateTable();
 
     let freePos = getFreePos();
-    if (!freePos) return;
     let { row, col } = getPos(freePos);
-
     setRandom({ row, col });
-    updatePos(freePos, table[row][col]);
-
-    cellsDOM[freePos].style.animation = "bounce 0.3s ease forwards";
-    setTimeout(() => {
-        cellsDOM[freePos].style.transition = "all 0.3s ease";
-        cellsDOM[freePos].style.animation = "none";
-    }, moveTimeout);
+    updatePos(freePos, table[row][col], 2);
 };
 
 const handleInput = (key) => {
@@ -320,13 +317,14 @@ const handleInput = (key) => {
         if (move === true) {
             handleMovement();
         }
+
         gameOver = checkGameOver();
         if (gameOver) {
             handleGameOver();
         }
         animating = false;
     }, moveTimeout);
-    console.table(table);
+    // console.table(table);
 };
 
 document.addEventListener("keydown", (event) => {
