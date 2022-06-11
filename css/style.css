@@ -88,6 +88,19 @@ body {
 .table-cell div {
     border-radius: 8px;
     transition: all 0.3s ease;
+    /* animation: bounce 0.5s ease; */
+}
+
+@keyframes bounce {
+    0% {
+        transform: scale(0.5);
+    }
+    80% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
 
 .table-cell[data-number="2"] > div {
@@ -118,12 +131,15 @@ body {
 }
 .table-cell[data-number="128"] > div {
     background-color: #edcf73;
+    font-size: 2rem;
 }
 .table-cell[data-number="256"] > div {
     background-color: #edcc62;
+    font-size: 2rem;
 }
 .table-cell[data-number="512"] > div {
     background-color: #edc850;
+    font-size: 2rem;
 }
 .table-cell[data-number="1024"] > div {
     background-color: #edc53f;

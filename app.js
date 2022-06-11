@@ -4,7 +4,11 @@ const cellsDOM = document.querySelectorAll(".table-cell div"),
     modalScore = modal.querySelector(".modal-score"),
     restartBtn = modal.querySelector(".modal-btn");
 
-let table, freeCells, score, gameOver;
+const boardSize = 4,
+    moveTimeout = 310,
+    modalTimeout = 500;
+
+let table, freeCells, score, gameOver, animating;
 
 const getFreePos = () => {
     let rand = Math.floor(Math.random() * freeCells.length);
@@ -31,7 +35,14 @@ const initGame = () => {
         [0, 0, 0, 0],
         [0, 0, 0, 0],
     ];
+    // table = new Array(4);
+    // for (let i = 0; i < 4; i++) {
+
+    //     for(let i = 0; i < 4; i++)
+    // }
+
     score = 0;
+    animating = false;
     gameOver = false;
     freeCells = [];
     for (let i = 0; i < 16; i++) freeCells.push(i);
@@ -61,8 +72,8 @@ const updateScore = (val) => {
 };
 
 const equalTables = (table = [], copiaTable = []) => {
-    for (let r = 0; r < table.length; r++) {
-        for (let c = 0; c < table.length; c++) {
+    for (let r = 0; r < boardSize; r++) {
+        for (let c = 0; c < boardSize; c++) {
             if (table[r][c] != copiaTable[r][c]) return false;
         }
     }
@@ -70,26 +81,57 @@ const equalTables = (table = [], copiaTable = []) => {
 };
 
 const moveTable = (dir) => {
-    let copiaTable = [];
-    for (let r = 0; r < table.length; r++) {
-        let tmp = [];
-        for (let c = 0; c < table.length; c++) {
-            tmp.push(table[r][c]);
-        }
-        copiaTable.push(tmp);
+    let finalPositions = [],
+        mk = [];
+
+    const copiaTable = [];
+    for (let i = 0; i < boardSize; i++) {
+        copiaTable.push(table[i].slice());
     }
+    for (let i = 0; i < boardSize; i++) {
+        finalPositions.push(new Array(boardSize));
+        mk.push(new Array(boardSize));
+        finalPositions[i].fill(-1);
+        mk[i].fill(0);
+    }
+
+    const canMove = (r, c, cell) => {
+        if (dir == 1 || dir == 3) {
+            let nCell = dir == 1 ? cell - 1 : cell + 1;
+            return table[cell][c] === table[nCell][c] && !mk[nCell][c] && !mk[cell][c];
+        } else if (dir == 2 || dir == 4) {
+            let nCell = dir == 4 ? cell - 1 : cell + 1;
+            return table[r][cell] === table[r][nCell] && !mk[r][nCell] && !mk[r][cell];
+        }
+        return false;
+    };
+    const modify = (r, c, cell) => {
+        if (dir == 1 || dir == 3) {
+            r = cell;
+            let nCell = dir == 1 ? r - 1 : r + 1;
+            table[r][c] = 0;
+            table[nCell][c] *= 2;
+            mk[nCell][c] = true;
+            updateScore(table[nCell][c]);
+        } else if (dir == 2 || dir == 4) {
+            let c = cell;
+            let nCell = dir == 4 ? c - 1 : c + 1;
+            table[r][c] = 0;
+            table[r][nCell] *= 2;
+            mk[r][nCell] = true;
+            updateScore(table[r][nCell]);
+        }
+    };
 
     if (dir == 1) {
         //to up
-        for (let r = 1; r < table.length; r++) {
-            for (let c = 0; c < table.length; c++) {
+        for (let r = 1; r < boardSize; r++) {
+            for (let c = 0; c < boardSize; c++) {
                 if (table[r][c] === 0) continue;
                 let cell = r;
                 while (cell > 0) {
-                    if (table[cell][c] === table[cell - 1][c]) {
-                        table[cell][c] = 0;
-                        table[cell - 1][c] *= 2;
-                        updateScore(table[cell - 1][c]);
+                    if (canMove(r, c, cell)) {
+                        modify(r, c, cell);
                     } else if (table[cell - 1][c] === 0) {
                         //swap...
                         [table[cell][c], table[cell - 1][c]] = [table[cell - 1][c], table[cell][c]];
@@ -97,20 +139,19 @@ const moveTable = (dir) => {
                         break;
                     }
                     cell--;
+                    finalPositions[r][c] = cell;
                 }
             }
         }
     } else if (dir === 2) {
         //to right
-        for (let r = 0; r < table.length; r++) {
-            for (let c = table.length - 1; c >= 0; c--) {
+        for (let r = 0; r < boardSize; r++) {
+            for (let c = boardSize - 1; c >= 0; c--) {
                 if (table[r][c] === 0) continue;
                 let cell = c;
-                while (cell < table.length - 1) {
-                    if (table[r][cell] === table[r][cell + 1]) {
-                        table[r][cell] = 0;
-                        table[r][cell + 1] *= 2;
-                        updateScore(table[r][cell + 1]);
+                while (cell < boardSize - 1) {
+                    if (canMove(r, c, cell)) {
+                        modify(r, c, cell);
                     } else if (table[r][cell + 1] === 0) {
                         //swap...
                         [table[r][cell], table[r][cell + 1]] = [table[r][cell + 1], table[r][cell]];
@@ -118,20 +159,19 @@ const moveTable = (dir) => {
                         break;
                     }
                     cell++;
+                    finalPositions[r][c] = cell;
                 }
             }
         }
     } else if (dir === 3) {
         //to down
-        for (let r = table.length - 1; r >= 0; r--) {
-            for (let c = 0; c < table.length; c++) {
+        for (let r = boardSize - 1; r >= 0; r--) {
+            for (let c = 0; c < boardSize; c++) {
                 if (table[r][c] === 0) continue;
                 let cell = r;
-                while (cell < table.length - 1) {
-                    if (table[cell][c] === table[cell + 1][c]) {
-                        table[cell][c] = 0;
-                        table[cell + 1][c] *= 2;
-                        updateScore(table[cell + 1][c]);
+                while (cell < boardSize - 1) {
+                    if (canMove(r, c, cell)) {
+                        modify(r, c, cell);
                     } else if (table[cell + 1][c] === 0) {
                         //swap...
                         [table[cell][c], table[cell + 1][c]] = [table[cell + 1][c], table[cell][c]];
@@ -139,20 +179,19 @@ const moveTable = (dir) => {
                         break;
                     }
                     cell++;
+                    finalPositions[r][c] = cell;
                 }
             }
         }
     } else if (dir === 4) {
         //to left
-        for (let r = 0; r < table.length; r++) {
-            for (let c = 1; c < table.length; c++) {
+        for (let r = 0; r < boardSize; r++) {
+            for (let c = 1; c < boardSize; c++) {
                 if (table[r][c] === 0) continue;
                 let cell = c;
                 while (cell > 0) {
-                    if (table[r][cell] === table[r][cell - 1]) {
-                        table[r][cell] = 0;
-                        table[r][cell - 1] *= 2;
-                        updateScore(table[r][cell - 1]);
+                    if (canMove(r, c, cell)) {
+                        modify(r, c, cell);
                     } else if (table[r][cell - 1] === 0) {
                         //swap...
                         [table[r][cell], table[r][cell - 1]] = [table[r][cell - 1], table[r][cell]];
@@ -160,39 +199,73 @@ const moveTable = (dir) => {
                         break;
                     }
                     cell--;
+                    finalPositions[r][c] = cell;
                 }
             }
         }
     }
-    return !equalTables(table, copiaTable);
+    if (!equalTables(table, copiaTable)) {
+        for (let r = 0, idx = 0; r < boardSize; r++)
+            for (let c = 0; c < boardSize; c++) {
+                if (finalPositions[r][c] !== -1) {
+                    const cellVal = finalPositions[r][c];
+
+                    const cell = getComputedStyle(cellsDOM[idx].parentElement);
+                    cellWidth = parseInt(cell.width) + parseInt(cell.margin) * 2;
+
+                    if (dir === 1) {
+                        cellsDOM[idx].style.transform = `translateY(${(cellVal - r) * cellWidth}px)`;
+                    } else if (dir === 2) {
+                        cellsDOM[idx].style.transform = `translateX(${(cellVal - c) * cellWidth}px)`;
+                    } else if (dir === 3) {
+                        cellsDOM[idx].style.transform = `translateY(${(cellVal - r) * cellWidth}px)`;
+                    } else if (dir === 4) {
+                        cellsDOM[idx].style.transform = `translateX(${(cellVal - c) * cellWidth}px)`;
+                    }
+                }
+                idx++;
+            }
+        return true;
+    }
+    return false;
+};
+
+const updatePos = (idx, val) => {
+    cellsDOM[idx].style.transform = "none";
+    cellsDOM[idx].innerHTML = "";
+    cellsDOM[idx].parentElement.dataset["number"] = val < 2048 ? val : "bigNum";
+    if (val !== 0) {
+        cellsDOM[idx].innerHTML = val;
+    } else {
+        freeCells.push(idx);
+    }
 };
 
 const updateTable = () => {
     freeCells = [];
     let idx = 0;
-    for (let r = 0; r < table.length; r++) {
-        for (let c = 0; c < table.length; c++) {
-            cellsDOM[idx].innerHTML = "";
-            cellsDOM[idx].parentElement.dataset["number"] = table[r][c] < 2048 ? table[r][c] : "bigNum";
-            if (table[r][c] !== 0) {
-                cellsDOM[idx].innerHTML = table[r][c];
-            } else {
-                freeCells.push(idx);
-            }
+    for (let r = 0; r < boardSize; r++) {
+        for (let c = 0; c < boardSize; c++) {
+            updatePos(idx, table[r][c]);
             idx++;
         }
     }
+    setTimeout(() => {
+        cellsDOM.forEach((cell) => {
+            cell.style.transition = "all 0.3s ease";
+        });
+    }, 100);
 };
 
 const checkGameOver = () => {
-    for (let r = 0; r < table.length; r++)
-        for (let c = 0; c < table.length; c++) {
+    for (let r = 0; r < boardSize; r++)
+        for (let c = 0; c < boardSize; c++) {
             if (table[r][c] == 0) return false;
             if (
-                (c < table.length - 1 && table[r][c] === table[r][c + 1]) ||
+                (c < boardSize - 1 && table[r][c] === table[r][c + 1]) ||
                 (c > 0 && table[r][c] === table[r][c - 1]) ||
                 (r > 0 && table[r][c] === table[r - 1][c]) ||
-                (r < table.length - 1 && table[r][c] === table[r + 1][c])
+                (r < boardSize - 1 && table[r][c] === table[r + 1][c])
             ) {
                 return false;
             }
@@ -205,10 +278,28 @@ const handleGameOver = () => {
         modal.classList.add("show-modal");
         modalScore.innerHTML = score;
         restartBtn.disabled = false;
-    }, 500);
-    // setTimeout(() => {
-    //     alert("Perdiste");
-    // }, 1000);
+    }, modalTimeout);
+};
+
+const handleMovement = () => {
+    cellsDOM.forEach((cell) => {
+        cell.style.transition = "none";
+    });
+
+    updateTable();
+
+    let freePos = getFreePos();
+    if (!freePos) return;
+    let { row, col } = getPos(freePos);
+
+    setRandom({ row, col });
+    updatePos(freePos, table[row][col]);
+
+    cellsDOM[freePos].style.animation = "bounce 0.3s ease forwards";
+    setTimeout(() => {
+        cellsDOM[freePos].style.transition = "all 0.3s ease";
+        cellsDOM[freePos].style.animation = "none";
+    }, moveTimeout);
 };
 
 const handleInput = (key) => {
@@ -218,41 +309,30 @@ const handleInput = (key) => {
         ArrowDown: 3,
         ArrowLeft: 4,
     };
-    //si no es un tecla de movimiento valida
+    //si no es un tecla de movimiento valida no hagas nada
     if (!movement[key]) return;
 
     let move = moveTable(movement[key]);
 
-    if (move === true) {
-        updateTable();
-        let freePos = getFreePos();
-        if (!freePos) return;
-        setRandom(getPos(freePos));
-        updateTable();
-        // keyPress = [];
-    }
-    gameOver = checkGameOver();
-    if (gameOver) {
-        handleGameOver();
-    }
-    /*
-    else {
-        keyPress.push(movement[key]);
-        let flag = undefined;
-        for (let i = 1; i <= 4; i++) {
-            flag = keyPress.find((e) => e == i);
-            if (!flag) break;
+    animating = true;
+
+    setTimeout(() => {
+        if (move === true) {
+            handleMovement();
         }
-        // console.log(flag, "EEE", keyPress);
-        if (flag) {
-            alert("Perdiste");
+        gameOver = checkGameOver();
+        if (gameOver) {
+            handleGameOver();
         }
-    }
-    */
+        animating = false;
+    }, moveTimeout);
+    console.table(table);
 };
 
 document.addEventListener("keydown", (event) => {
-    if (!gameOver) handleInput(event.key);
+    if (!gameOver && !animating) {
+        handleInput(event.key);
+    }
 });
 
 restartBtn.addEventListener("click", () => {
