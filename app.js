@@ -110,7 +110,7 @@ const moveTable = (dir) => {
         mk[i].fill(0);
     }
 
-    const canMove = (r, c, cell) => {
+    const canJoin = (r, c, cell) => {
         if (dir == 1 || dir == 3) {
             let nCell = dir == 1 ? cell - 1 : cell + 1;
             return table[cell][c] === table[nCell][c] && !mk[nCell][c] && !mk[cell][c];
@@ -147,7 +147,7 @@ const moveTable = (dir) => {
                 if (table[r][c] === 0) continue;
                 let cell = r;
                 while (cell > 0) {
-                    if (canMove(r, c, cell)) {
+                    if (canJoin(r, c, cell)) {
                         modify(r, c, cell);
                     } else if (table[cell - 1][c] === 0) {
                         //swap...
@@ -167,7 +167,7 @@ const moveTable = (dir) => {
                 if (table[r][c] === 0) continue;
                 let cell = c;
                 while (cell < boardSize - 1) {
-                    if (canMove(r, c, cell)) {
+                    if (canJoin(r, c, cell)) {
                         modify(r, c, cell);
                     } else if (table[r][cell + 1] === 0) {
                         //swap...
@@ -187,7 +187,7 @@ const moveTable = (dir) => {
                 if (table[r][c] === 0) continue;
                 let cell = r;
                 while (cell < boardSize - 1) {
-                    if (canMove(r, c, cell)) {
+                    if (canJoin(r, c, cell)) {
                         modify(r, c, cell);
                     } else if (table[cell + 1][c] === 0) {
                         //swap...
@@ -207,7 +207,7 @@ const moveTable = (dir) => {
                 if (table[r][c] === 0) continue;
                 let cell = c;
                 while (cell > 0) {
-                    if (canMove(r, c, cell)) {
+                    if (canJoin(r, c, cell)) {
                         modify(r, c, cell);
                     } else if (table[r][cell - 1] === 0) {
                         //swap...
@@ -271,13 +271,11 @@ const updateTable = () => {
         for (let c = 0; c < boardSize; c++) {
             updatePos(idx, table[r][c], animatedCells.includes(idx));
             if (table[r][c] == 0) {
-                console.log("La pos: ", { r, c }, "esta libre");
                 freeCells.push(idx);
             }
             idx++;
         }
     }
-    console.log("\n\n");
 
     setTimeout(() => {
         cellsDOM.forEach((cell) => {
