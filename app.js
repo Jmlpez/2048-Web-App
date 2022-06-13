@@ -37,7 +37,7 @@ const initGame = () => {
     ];
 
     score = 0;
-    animating = false;
+    countAnim = 1;
     gameOver = false;
     freeCells = [];
     animatedCells = [];
@@ -258,6 +258,7 @@ const updatePos = (idx, val, flag = 0) => {
         setTimeout(() => {
             cellsDOM[idx].style.transition = "all 0.3s ease";
             cellsDOM[idx].style.animation = "none";
+            countAnim++;
         }, moveTimeout);
     }
 
@@ -281,6 +282,7 @@ const updateTable = () => {
         cellsDOM.forEach((cell) => {
             cell.style.transition = "all 0.3s ease";
         });
+        // animating = false;
     }, 100);
 };
 
@@ -309,7 +311,8 @@ const handleInput = (key) => {
 
     let move = moveTable(movement[key]);
 
-    animating = true;
+    // animating = true;
+    countAnim = 0;
 
     setTimeout(() => {
         if (move === true) {
@@ -320,12 +323,23 @@ const handleInput = (key) => {
         if (gameOver) {
             handleGameOver();
         }
-        animating = false;
     }, moveTimeout);
+    // setTimeout(() => {
+    //     animating = false;
+    // }, moveTimeout + moveTimeout - 50);
+    // cellsDOM.forEach((cell) => {
+    //     cell.addEventListener("transitionend", () => {
+    //         animating = false;
+    //     });
+    //     cell.addEventListener("animationend", () => {
+    //         animating = false;
+    //     });
+    // });
     // console.table(table);
 };
 
 document.addEventListener("keydown", (event) => {
+    let animating = !(countAnim == animatedCells.length + 1);
     if (!gameOver && !animating) {
         handleInput(event.key);
     }
