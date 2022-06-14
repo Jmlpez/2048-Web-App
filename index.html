@@ -11,10 +11,18 @@
     <body>
         <main class="main">
             <h1 class="game-title">Welcome to 2048!</h1>
-            <section class="score">
-                <h3>Score:</h3>
-                <div class="score-value">
-                    <span>0</span>
+            <section class="game-options">
+                <div class="score" id="score">
+                    <h3>Score:</h3>
+                    <div class="score-value">
+                        <span>0</span>
+                    </div>
+                </div>
+                <div class="score best-score" id="best-score">
+                    <h3>Best Score:</h3>
+                    <div class="score-value">
+                        <span>0</span>
+                    </div>
                 </div>
             </section>
             <section class="game">
@@ -69,6 +77,7 @@
                     </div>
                 </article>
             </section>
+            <button id="restart-btn" class="btn restart-btn">Restart Game</button>
         </main>
         <div class="overlay">
             <div class="modal">

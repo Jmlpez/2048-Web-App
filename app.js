@@ -1,8 +1,10 @@
 const cellsDOM = document.querySelectorAll(".table-cell div"),
-    scoreDOM = document.querySelector(".score span"),
+    scoreDOM = document.querySelector("#score span"),
+    bestScoreDOM = document.querySelector("#best-score span"),
+    restartBtn = document.querySelector("#restart-btn"),
     modal = document.querySelector(".overlay"),
     modalScore = modal.querySelector(".modal-score"),
-    restartBtn = modal.querySelector(".modal-btn");
+    modalRestartBtn = modal.querySelector(".modal-btn");
 
 const boardSize = 4,
     moveTimeout = 300,
@@ -51,7 +53,7 @@ const initGame = () => {
     scoreDOM.innerHTML = score;
     modalScore.innerHTML = score;
     modal.classList.remove("show-modal");
-    restartBtn.disabled = true;
+    modalRestartBtn.disabled = true;
     updateTable();
 };
 
@@ -75,7 +77,7 @@ const handleGameOver = () => {
     setTimeout(() => {
         modal.classList.add("show-modal");
         modalScore.innerHTML = score;
-        restartBtn.disabled = false;
+        modalRestartBtn.disabled = false;
     }, modalTimeout);
 };
 
@@ -309,7 +311,7 @@ const handleInput = (key) => {
     //si no es un tecla de movimiento valida no hagas nada
     if (!movement[key]) return;
 
-    let move = moveTable(movement[key]);
+    const move = moveTable(movement[key]);
 
     // animating = true;
     countAnim = 0;
@@ -317,6 +319,9 @@ const handleInput = (key) => {
     setTimeout(() => {
         if (move === true) {
             handleMovement();
+        } else {
+            //para cuando te muevas para una posicion valida pero no se anime nada
+            countAnim = 1;
         }
 
         gameOver = checkGameOver();
@@ -324,25 +329,18 @@ const handleInput = (key) => {
             handleGameOver();
         }
     }, moveTimeout);
-    // setTimeout(() => {
-    //     animating = false;
-    // }, moveTimeout + moveTimeout - 50);
-    // cellsDOM.forEach((cell) => {
-    //     cell.addEventListener("transitionend", () => {
-    //         animating = false;
-    //     });
-    //     cell.addEventListener("animationend", () => {
-    //         animating = false;
-    //     });
-    // });
-    // console.table(table);
 };
 
 document.addEventListener("keydown", (event) => {
-    let animating = !(countAnim == animatedCells.length + 1);
-    if (!gameOver && !animating) {
+    //Si todas las celdas terminaron de animarse
+    const finishAnimation = countAnim == animatedCells.length + 1;
+    if (!gameOver && finishAnimation) {
         handleInput(event.key);
     }
+});
+
+modalRestartBtn.addEventListener("click", () => {
+    initGame();
 });
 
 restartBtn.addEventListener("click", () => {
