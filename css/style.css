@@ -45,6 +45,7 @@ body {
 .game-options {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     justify-content: right;
     max-width: 23.5rem;
     margin: 0 auto;

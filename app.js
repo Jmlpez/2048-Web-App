@@ -10,7 +10,7 @@ const boardSize = 4,
     moveTimeout = 300,
     modalTimeout = 500;
 
-let table, freeCells, animatedCells, score, gameOver, animating;
+let table, freeCells, animatedCells, score, bestScore, gameOver, animating;
 
 const getFreePos = () => {
     let rand = Math.floor(Math.random() * freeCells.length);
@@ -30,27 +30,69 @@ const setRandom = (pos = {}) => {
     if (pos !== NaN) table[pos.row][pos.col] = rand <= 0.75 ? 2 : 4;
 };
 
-const initGame = () => {
-    table = [
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-    ];
-
-    score = 0;
-    countAnim = 1;
-    gameOver = false;
-    freeCells = [];
-    animatedCells = [];
-    for (let i = 0; i < 16; i++) freeCells.push(i);
-
-    //Initial numbers
-    for (let i = 0; i < 2; i++) {
-        let freePos = getFreePos();
-        setRandom(getPos(freePos));
+const saveData = () => {
+    if (gameOver) {
+        table = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ];
+        score = 0;
+        freeCells = [];
+        for (let i = 0; i < 16; i++) freeCells.push(i);
     }
+
+    let gameData = {
+        score: score,
+        bestScore: bestScore,
+        table: table,
+        freeCells: freeCells,
+        gameState: gameOver,
+    };
+    localStorage.setItem("gameData", JSON.stringify(gameData));
+};
+
+const loadData = () => {
+    let data = JSON.parse(localStorage.getItem("gameData"));
+    return data;
+};
+
+const initGame = () => {
+    let gameData = loadData();
+    if (gameData === null) {
+        table = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ];
+        bestScore = 0;
+        score = 0;
+        freeCells = [];
+        for (let i = 0; i < 16; i++) freeCells.push(i);
+
+        //Initial numbers
+        for (let i = 0; i < 2; i++) {
+            let freePos = getFreePos();
+            setRandom(getPos(freePos));
+        }
+    } else {
+        table = gameData.table;
+        score = parseInt(gameData.score);
+        bestScore = parseInt(gameData.bestScore);
+        freeCells = gameData.freeCells;
+        if (gameData.gameState)
+            for (let i = 0; i < 2; i++) {
+                let freePos = getFreePos();
+                setRandom(getPos(freePos));
+            }
+    }
+    gameOver = false;
+    countAnim = 1;
+    animatedCells = [];
     scoreDOM.innerHTML = score;
+    bestScoreDOM.innerHTML = bestScore;
     modalScore.innerHTML = score;
     modal.classList.remove("show-modal");
     modalRestartBtn.disabled = true;
@@ -78,11 +120,18 @@ const handleGameOver = () => {
         modal.classList.add("show-modal");
         modalScore.innerHTML = score;
         modalRestartBtn.disabled = false;
+        saveData();
     }, modalTimeout);
 };
 
 const updateScore = (val) => {
     score += val;
+    if (score >= bestScore) {
+        bestScore = score;
+        bestScoreDOM.innerHTML = bestScore;
+    } else {
+        console.table((score, "\n", bestScore, val));
+    }
     scoreDOM.innerHTML = score;
 };
 
@@ -319,6 +368,7 @@ const handleInput = (key) => {
     setTimeout(() => {
         if (move === true) {
             handleMovement();
+            saveData();
         } else {
             //para cuando te muevas para una posicion valida pero no se anime nada
             countAnim = 1;
@@ -331,6 +381,12 @@ const handleInput = (key) => {
     }, moveTimeout);
 };
 
+const restartGame = () => {
+    gameOver = true;
+    saveData();
+    initGame();
+};
+
 document.addEventListener("keydown", (event) => {
     //Si todas las celdas terminaron de animarse
     const finishAnimation = countAnim == animatedCells.length + 1;
@@ -340,11 +396,54 @@ document.addEventListener("keydown", (event) => {
 });
 
 modalRestartBtn.addEventListener("click", () => {
-    initGame();
+    restartGame();
 });
 
 restartBtn.addEventListener("click", () => {
-    initGame();
+    restartGame();
 });
 
 initGame();
+
+//Handle touch Events
+const handleTouchMove = (posIni = {}, posFin = {}) => {
+    let elV = posFin.pageY - posIni.pageY;
+    let elH = posFin.pageX - posIni.pageX;
+    if (elV >= 65 || elV <= -65) {
+        // console.log("Mov vertical", elV);
+        if (elV <= -65) {
+            //moveUp
+            console.log("Mov Up", elV);
+            return "ArrowUp";
+        } else {
+            //moveDown
+            console.log("Mov Down", elV);
+            return "ArrowDown";
+        }
+    }
+    if (elH >= 65 || elH <= -65) {
+        // console.log("Mov vertical", elH);
+        if (elH <= -65) {
+            //moveLeft
+            console.log("Mov Left", elH);
+            return "ArrowLeft";
+        } else {
+            //moveRight
+            console.log("Mov Right", elH);
+            return "ArrowRight";
+        }
+    }
+};
+
+let posInicial = {};
+
+document.addEventListener("touchstart", (event) => {
+    posInicial = event.touches[0];
+});
+document.addEventListener("touchmove", (event) => {
+    const dir = handleTouchMove(posInicial, event.touches[0]);
+    const finishAnimation = countAnim == animatedCells.length + 1;
+    if (!gameOver && finishAnimation) {
+        handleInput(dir);
+    }
+});
