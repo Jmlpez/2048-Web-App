@@ -1,0 +1,19 @@
+{
+    "name": "2048-pwa",
+    "version": "1.0.0",
+    "description": "2048 game using vanilla js ",
+    "main": "index.html",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Jmlpez/2048-Web-App.git"
+    },
+    "author": "Jmlpez",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/Jmlpez/2048-Web-App/issues"
+    },
+    "homepage": "https://github.com/Jmlpez/2048-Web-App#readme"
+}
