@@ -3,13 +3,13 @@
     "short_name": "2048 PWA",
     "icons": [
         {
-            "src": "./images/2048-icon.png",
+            "src": "https://jmlpez.github.io/2048-Web-App/images/2048-icon.png",
             "sizes": "512x512",
             "type": "image/png"
         }
     ],
     "lang": "en-US",
-    "start_url": "/index.html",
+    "start_url": "https://jmlpez.github.io/2048-Web-App/index.html",
     "display": "standalone",
     "background_color": "white",
     "theme_color": "white"
