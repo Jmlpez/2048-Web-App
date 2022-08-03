@@ -1,5 +1,11 @@
 let cacheName = "2048-PWA";
-let filesToCache = ["./", "./index.html", "./css/style.css", "./app.js", "./main.js"];
+let filesToCache = [
+    "https://jmlpez.github.io/2048-Web-App/",
+    "https://jmlpez.github.io/2048-Web-App/index.html",
+    "https://jmlpez.github.io/2048-Web-App/css/style.css",
+    "https://jmlpez.github.io/2048-Web-App/app.js",
+    "https://jmlpez.github.io/2048-Web-App/main.js",
+];
 
 /* Start the service worker and cache all of the app's content */
 self.addEventListener("install", (e) => {
